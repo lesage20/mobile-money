@@ -1,7 +1,7 @@
 <template>
-  <q-page padding class="q-mx-xl">
+  <q-page padding class="q-mx-d">
     <div class="row justify-center">
-      <div class="col-md-10 col-lg-7">
+      <div class="col-md-10 col-lg-8 col-xl-7">
         <q-card bordered flat class="fit-width">
           <q-card-section>
             <div class="text-h5 text-regular">Paramètres</div>
@@ -11,20 +11,30 @@
             <q-item header class="text-grey q-pl-none">Thème</q-item>
             <div class="text-subtitle1 align-center flex justify-between">
               <span>Mode sombre</span>
-              <q-toggle v-on:click="$q.dark.toggle()" v-model="dark"></q-toggle>
+              <q-toggle
+                v-on:click="setOption('theme', 'dark', !$q.dark.isActive)"
+                v-model="dark"
+              ></q-toggle>
             </div>
           </q-card-section>
 
           <q-card-section>
             <q-item header class="text-grey q-pl-none">Solde</q-item>
-            <div
-              class="text-subtitle1 align-center flex justify-between text-grey"
-            >
+            <div class="text-subtitle1 align-center flex justify-between">
               <span>
                 Commencer la journée avec le dernier solde en date ( Vous ne
                 pouvez pas desactiver )
               </span>
-              <q-toggle v-model="startWithLastDateValue" disable></q-toggle>
+              <q-toggle
+                v-on:click="
+                  setOption(
+                    'solde',
+                    'start_with_last_date_value',
+                    startWithLastDateValue
+                  )
+                "
+                v-model="startWithLastDateValue"
+              ></q-toggle>
             </div>
           </q-card-section>
 
@@ -37,7 +47,11 @@
                 Sauvegarder quotidiennement les données sur google drive (
                 bientot disponible )
               </span>
-              <q-toggle disable v-model="google_drive"></q-toggle>
+              <q-toggle
+                v-on:click="setOption('google_drive', 'using', google_drive)"
+                disable
+                v-model="google_drive"
+              ></q-toggle>
             </div>
           </q-card-section>
 
@@ -47,19 +61,45 @@
             </q-item>
             <div class="text-subtitle1 align-center flex justify-between">
               <span> J'ai déja visité l'ecran d'accueil </span>
-              <q-toggle v-model="has_seen_app"></q-toggle>
+              <q-toggle
+                v-on:click="setOption('views', 'has_seen_app', has_seen_app)"
+                v-model="has_seen_app"
+              ></q-toggle>
             </div>
             <div class="text-subtitle1 align-center flex justify-between">
               <span> J'ai déja visité la page des transactions </span>
-              <q-toggle v-model="has_seen_transaction_list"></q-toggle>
+              <q-toggle
+                v-on:click="
+                  setOption(
+                    'views',
+                    'has_seen_transaction_list',
+                    has_seen_transaction_list
+                  )
+                "
+                v-model="has_seen_transaction_list"
+              ></q-toggle>
             </div>
             <div class="text-subtitle1 align-center flex justify-between">
               <span> J'ai déja visité l'ajout de transfert </span>
-              <q-toggle v-model="has_seen_add_transaction"></q-toggle>
+              <q-toggle
+                v-on:click="
+                  setOption(
+                    'views',
+                    'has_seen_add_transaction',
+                    has_seen_add_transaction
+                  )
+                "
+                v-model="has_seen_add_transaction"
+              ></q-toggle>
             </div>
             <div class="text-subtitle1 align-center flex justify-between">
               <span> J'ai déja visité le dashboard </span>
-              <q-toggle v-model="has_seen_dashboard"></q-toggle>
+              <q-toggle
+                v-on:click="
+                  setOption('views', 'has_seen_dashboard', has_seen_dashboard)
+                "
+                v-model="has_seen_dashboard"
+              ></q-toggle>
             </div>
           </q-card-section>
 
@@ -67,11 +107,19 @@
             <q-item header class="text-grey q-pl-none">Modification</q-item>
             <div class="text-subtitle1 align-center flex justify-between">
               <span> Autoriser suppression de données </span>
-              <q-toggle disable v-model="allow_delete"></q-toggle>
+              <q-toggle
+                v-on:click="setOption('editing', 'allow_delete', allow_delete)"
+                disable
+                v-model="allow_delete"
+              ></q-toggle>
             </div>
             <div class="text-subtitle1 align-center flex justify-between">
               <span> Autoriser odification de données </span>
-              <q-toggle disable v-model="allow_edit"></q-toggle>
+              <q-toggle
+                v-on:click="setOption('editing', 'allow_edit', allow_edit)"
+                disable
+                v-model="allow_edit"
+              ></q-toggle>
             </div>
           </q-card-section>
           <q-card-actions align="right">
@@ -96,12 +144,13 @@ import { useOptionStore } from "src/stores/user-options";
 const optionStore = useOptionStore();
 
 const $q = useQuasar();
-const dark = ref($q.dark.isActive);
 const startWithLastDateValue = ref(
   optionStore.solde.start_with_last_date_value
 );
+const dark = ref(optionStore.theme.dark);
 
-const google_drive = ref(optionStore.backup.google_drive.using);
+console.log({ optionStore });
+const google_drive = ref(optionStore.google_drive.using);
 const has_seen_app = ref(optionStore.views.has_seen_app);
 const has_seen_dashboard = ref(optionStore.views.has_seen_dashboard);
 const has_seen_transaction_list = ref(
@@ -112,4 +161,10 @@ const has_seen_add_transaction = ref(
 );
 const allow_edit = ref(optionStore.editing?.allow_edit);
 const allow_delete = ref(optionStore.editing?.allow_delete);
+
+const setOption = async (name, key, value) => {
+  await transactions.setUserOptions(name, key, value);
+  if (key == "dark") $q.dark.toggle();
+  optionStore.setOption({ name, key, value });
+};
 </script>

@@ -189,7 +189,7 @@ contextBridge.exposeInMainWorld("transactions", {
         has_seen_add_transaction: false,
       };
       user_options.theme = { dark: true };
-      user_options.backup = { google_drive: { using: false } };
+      user_options.google_drive = { using: false };
       user_options.solde = {
         start_with_last_date_value: true,
       };
@@ -198,14 +198,14 @@ contextBridge.exposeInMainWorld("transactions", {
         allow_delete: false,
       };
     } else {
-      if (name && key && value) {
+      if (name && key && value != null) {
         if (user_options[name] && typeof user_options[name] == "object") {
           user_options[name][key] = value;
         } else {
           user_options[name] = {};
           user_options[name][key] = value;
         }
-      } else if (name && key) {
+      } else if (name && key != null) {
         if (user_options[name] && typeof user_options[name] == "object") {
           user_options[name] = key;
         } else {

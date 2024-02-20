@@ -10,7 +10,9 @@
             class="text-h4 text-bold"
             :class="isUvSufficient ? 'text-positive' : 'text-negative'"
           >
-            {{ soldeStore.uv[props.operateur || "principal"].toLocaleString() }}
+            {{
+              soldeStore.uv[props.operateur || "principal"]?.toLocaleString()
+            }}
             f
           </div>
         </q-card-section>

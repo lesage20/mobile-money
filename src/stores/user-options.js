@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 export const useOptionStore = defineStore("option", {
   state: () => ({
     views: {},
-    backup: {},
+    google_drive: {},
     solde: {},
     theme: {},
     date: new Date(),
