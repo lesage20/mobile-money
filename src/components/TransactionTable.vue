@@ -139,7 +139,7 @@ const getRows = async () => {
 const optionStore = useOptionStore();
 
 onMounted(async () => {
-  await getRows();
+  getRows();
   const userOptions = await transactions.setUserOptions();
 
   optionStore.setUserOptions(userOptions);

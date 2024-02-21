@@ -205,7 +205,7 @@ onMounted(async () => {
     data = await transactions.getSolde(true);
     data.date = new Date();
     delete data._id;
-    await updateSolde({}, data);
+    updateSolde({}, data);
   } else if (!data && !optionStore.solde.start_with_last_date_value) {
     data = await transactions.getSolde(true);
     delete data._id;

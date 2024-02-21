@@ -85,7 +85,7 @@ const getStats = async () => {
 };
 
 onMounted(async () => {
-  await getStats();
+  getStats();
   const userOptions = await transactions.setUserOptions();
 
   optionStore.setUserOptions(userOptions);

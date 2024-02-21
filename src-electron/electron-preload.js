@@ -39,8 +39,6 @@ contextBridge.exposeInMainWorld("transactions", {
 
         const collection = db.collection("transactions");
         inserted = await collection.insertOne(data);
-        if (data.fournisseur) {
-        }
       } finally {
         await client.close();
       }
