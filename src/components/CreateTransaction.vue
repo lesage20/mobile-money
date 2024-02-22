@@ -23,11 +23,7 @@
           name="montant"
           type="number"
           label="Montant"
-          :rules="[
-            (val) =>
-              val >= 500 ||
-              'Le montant de la transaction doit être superieur ou egale a 500f',
-          ]"
+          :min="500"
         ></q-input>
       </div>
       <div class="col">
@@ -45,7 +41,10 @@
                   { label: 'Dépot', value: 'depot' },
                   { label: 'Retrait', value: 'retrait' },
                 ]
-              : [{ label: 'Recharge', value: 'recharge' }]
+              : [
+                  { label: 'Recharge Uv', value: 'recharge-uv' },
+                  { label: 'Recharge Caisse', value: 'recharge-caisse' },
+                ]
           "
         ></q-select>
       </div>
@@ -62,6 +61,7 @@
       </div> -->
       <div class="d-flex align-bottom">
         <q-btn
+          :loading="loading"
           @click="saveTransaction"
           :class="activeClass"
           size="lg"
@@ -126,89 +126,96 @@ const op = computed(() => {
   return current;
 });
 const data = ref({ telephone: null, montant: 0, type: null });
-
+const loading = ref(false);
 const saveTransaction = async () => {
-  const toSave = {};
-  for (let key in data.value) {
-    if (!data.value[key]) {
-      $q.notify(`${key}: Veuillez renseigner ce champs.`);
-      return;
+  loading.value = true;
+  try {
+    const toSave = {};
+    for (let key in data.value) {
+      if (!data.value[key]) {
+        $q.notify(`${key}: Veuillez renseigner ce champs.`);
+        return;
+      }
+      toSave[key] = data.value[key];
     }
-    toSave[key] = data.value[key];
-  }
-  toSave.operateur = props.operateur;
+    toSave.operateur = props.operateur;
 
-  if (toSave.type == "retrait") {
-    if (!(soldeStore.caisse[toSave.operateur] > toSave.montant)) {
-      $q.notify({
-        message: `Montant : Le solde de votre caisse est insuffisant pour effectuer ce transfert.\n Montant caisse : ${soldeStore.caisse[
-          toSave.operateur
-        ]?.toLocaleString()}f.`,
-        type: "negative",
-      });
-      return;
+    if (toSave.type == "retrait") {
+      if (!(soldeStore.caisse[toSave.operateur] > toSave.montant)) {
+        $q.notify({
+          message: `Montant : Le solde de votre caisse est insuffisant pour effectuer ce transfert.\n Montant caisse : ${soldeStore.caisse[
+            toSave.operateur
+          ]?.toLocaleString()}f.`,
+          type: "negative",
+        });
+        return;
+      }
+    } else if (toSave.type == "depot") {
+      if (!(soldeStore.uv[toSave.operateur] > toSave.montant)) {
+        $q.notify({
+          message: `Montant : Le solde de votre uv est insuffisant pour effectuer ce transfert.\n Montant uv :${soldeStore.uv[
+            toSave.operateur
+          ]?.toLocaleString()}f.`,
+          type: "negative",
+        });
+        return;
+      }
     }
-  } else if (toSave.type == "depot") {
-    if (!(soldeStore.uv[toSave.operateur] > toSave.montant)) {
-      $q.notify({
-        message: `Montant : Le solde de votre uv est insuffisant pour effectuer ce transfert.\n Montant uv :${soldeStore.uv[
-          toSave.operateur
-        ]?.toLocaleString()}f.`,
-        type: "negative",
-      });
-      return;
-    }
-  }
 
-  if (props.operateur == "orange") {
-    if (!toSave.telephone.startsWith("07")) {
-      $q.notify({
-        message: `Téléphone : Veuillez renseigner un numéro ${props.operateur}.`,
-        type: "negative",
-      });
-      return;
+    if (props.operateur == "orange") {
+      if (!toSave.telephone.startsWith("07")) {
+        $q.notify({
+          message: `Téléphone : Veuillez renseigner un numéro ${props.operateur}.`,
+          type: "negative",
+        });
+        return;
+      }
+    } else if (props.operateur == "mtn") {
+      if (!toSave.telephone.startsWith("05")) {
+        $q.notify({
+          message: `Téléphone : Veuillez renseigner un numéro ${props.operateur}.`,
+          type: "negative",
+        });
+        return;
+      }
+    } else if (props.operateur == "moov") {
+      if (!toSave.telephone.startsWith("01")) {
+        $q.notify({
+          message: `Téléphone : Veuillez renseigner un numéro ${props.operateur}.`,
+          type: "negative",
+        });
+        return;
+      }
     }
-  } else if (props.operateur == "mtn") {
-    if (!toSave.telephone.startsWith("05")) {
-      $q.notify({
-        message: `Téléphone : Veuillez renseigner un numéro ${props.operateur}.`,
-        type: "negative",
-      });
-      return;
-    }
-  } else if (props.operateur == "moov") {
-    if (!toSave.telephone.startsWith("01")) {
-      $q.notify({
-        message: `Téléphone : Veuillez renseigner un numéro ${props.operateur}.`,
-        type: "negative",
-      });
-      return;
-    }
-  }
-  toSave.date = new Date();
+    toSave.date = new Date();
 
-  if (route.fullPath.endsWith("fournisseurs")) {
-    toSave.fournisseur = true;
-  } else {
-    toSave.fournisseur = false;
-  }
-  toSave.ref = uniqueId().toString();
-  const inserted = await transactions.addTransaction(toSave);
+    if (route.fullPath.endsWith("fournisseurs")) {
+      toSave.fournisseur = true;
+    } else {
+      toSave.fournisseur = false;
+    }
+    toSave.ref = uniqueId().toString();
+    const inserted = await transactions.addTransaction(toSave);
 
-  if (inserted?.acknowledged) {
-    await transactions.updateSolde(toSave);
-    soldeStore.addTransaction(toSave);
-    $q.notify({
-      message: "Transactions eneregistré avec succès",
-      type: "positive",
-    });
-    emits("saved", toSave);
-    data.value = {};
-  } else {
-    $q.notify({
-      message: "Nous n'avons pas pu enregistrer cette transaction",
-      type: "negative",
-    });
+    if (inserted?.acknowledged) {
+      await transactions.updateSolde(toSave);
+      soldeStore.addTransaction(toSave);
+      $q.notify({
+        message: "Transactions eneregistré avec succès",
+        type: "positive",
+      });
+      emits("saved", toSave);
+      data.value = {};
+    } else {
+      $q.notify({
+        message: "Nous n'avons pas pu enregistrer cette transaction",
+        type: "negative",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -220,21 +227,28 @@ watch(
     if (op.value.value != "wave") {
       phoneRules.value = [
         (val) =>
+          !val ||
           /^\d+$/g.test(val) ||
           "Le numero de telephone ne peut pas contenir de lettre ou de symbole",
         (val) =>
-          val.length >= 10 || "Veuillez saisir un numéro d'au moins 10 chiffre",
+          !val ||
+          val.length >= 10 ||
+          "Veuillez saisir un numéro d'au moins 10 chiffre",
         (val) =>
+          !val ||
           val.startsWith(op.value?.start) ||
           `Ce numéro n\'est pas un numéro ${op?.value.value}`,
       ];
     } else {
       phoneRules.value = [
         (val) =>
+          !val ||
           /^\d+$/g.test(val) ||
           "Le numero de telephone ne peut pas contenir de lettre ou de symbole",
         (val) =>
-          val.length >= 10 || "Veuillez saisir un numéro d'au moins 10 chiffre",
+          !val ||
+          val.length >= 10 ||
+          "Veuillez saisir un numéro d'au moins 10 chiffre",
       ];
     }
   },

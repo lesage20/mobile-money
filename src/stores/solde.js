@@ -21,9 +21,12 @@ export const useSoldeStore = defineStore("solde", {
         this.uv[operateur] -= montant;
         this.caisse.principal += montant;
         this.caisse[operateur] += montant;
-      } else if (type == "recharge") {
+      } else if (type == "recharge-uv") {
         this.uv.principal += montant;
         this.uv[operateur] += montant;
+      } else if (type == "recharge-caisse") {
+        this.caisse.principal += montant;
+        this.caisse[operateur] += montant;
       }
 
       this.date = date;

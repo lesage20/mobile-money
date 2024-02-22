@@ -114,6 +114,9 @@ contextBridge.exposeInMainWorld("transactions", {
     } else if (type == "recharge") {
       data.uv.principal += montant;
       data.uv[operateur] += montant;
+    } else if (type == "recharge-caisse") {
+      data.caisse.principal += montant;
+      data.caisse[operateur] += montant;
     }
     const updated = await collection.updateOne(
       { date: { $gte: start, $lte: end }, agence: os.hostname() },
