@@ -1,8 +1,10 @@
 import { contextBridge } from "electron";
 import { MongoClient, ObjectId } from "mongodb";
 import { date } from "quasar";
-const uri = "mongodb://127.0.0.1:27017/transactions";
-
+import os from "os";
+const uri =
+  "mongodb+srv://lesage:aPc7ZswJ2HaPnrED@mobile-money-manager.24aowmz.mongodb.net/transactions" ??
+  "mongodb://127.0.0.1:27017/transactions";
 const getCollection = async (col_name) => {
   const client = new MongoClient(uri);
   const db = client.db();
@@ -19,6 +21,7 @@ contextBridge.exposeInMainWorld("transactions", {
         const db = client.db();
 
         const collection = db.collection("transactions");
+        query.agence = os.hostname();
         transactions = await collection
           .find(query)
           .sort({ date: -1 })
@@ -38,6 +41,7 @@ contextBridge.exposeInMainWorld("transactions", {
         const db = client.db();
 
         const collection = db.collection("transactions");
+        data.agence = os.hostname();
         inserted = await collection.insertOne(data);
       } finally {
         await client.close();
@@ -53,7 +57,10 @@ contextBridge.exposeInMainWorld("transactions", {
     try {
       const unique = data.ref;
       delete data.ref;
-      updated = await collection.updateOne({ ref: unique }, { $set: data });
+      updated = await collection.updateOne(
+        { ref: unique, agence: os.hostname() },
+        { $set: data }
+      );
     } finally {
       await client.close();
     }
@@ -62,15 +69,15 @@ contextBridge.exposeInMainWorld("transactions", {
   },
 
   updateSolde: async ({ operateur, montant, type }, initData) => {
-    const { client, collection } = await getCollection("historique_solde");
-    console.log("called");
+    const { client, db, collection } = await getCollection("historique_solde");
+    const agence = db.collection("agence");
     const today = new Date();
     const start = date.startOfDate(today, "day");
     const end = date.endOfDate(today, "day");
     let data = await collection.findOne({
       date: { $gte: start, $lte: end },
+      agence: os.hostname(),
     });
-    console.log(!data);
     if (!data) {
       if (initData) data = initData;
       else {
@@ -109,10 +116,26 @@ contextBridge.exposeInMainWorld("transactions", {
       data.uv[operateur] += montant;
     }
     const updated = await collection.updateOne(
-      { date: { $gte: start, $lte: end } },
+      { date: { $gte: start, $lte: end }, agence: os.hostname() },
       {
         $set: data,
       },
+      { upsert: true }
+    );
+    const ids = [];
+    const infos = os.networkInterfaces();
+    for (let id in infos) {
+      if (id != "lo") {
+        ids.push(infos[id].map((el) => ({ address: el.address, mac: el.mac })));
+      }
+    }
+    const agence_info = {
+      name: os.hostname(),
+      ids,
+    };
+    await agence.updateOne(
+      { name: agence_info.name },
+      { $set: agence_info },
       { upsert: true }
     );
     client.close();
@@ -127,9 +150,14 @@ contextBridge.exposeInMainWorld("transactions", {
       const end = date.endOfDate(today, "day");
       data = await collection.findOne({
         date: { $gte: start, $lte: end },
+        agence: os.hostname(),
       });
     } else {
-      data = await collection.find({}).sort({ date: -1 }).limit(1).toArray();
+      data = await collection
+        .find({ agence: os.hostname() })
+        .sort({ date: -1 })
+        .limit(1)
+        .toArray();
       if (data.length) data = data[0];
     }
     client.close();
@@ -153,6 +181,7 @@ contextBridge.exposeInMainWorld("transactions", {
         date: { $gte: start, $lte: end },
       };
       if (operateur) query.operateur = operateur;
+      query.agence = os.hostname();
       let data = await collection.find(query).toArray();
       toExport[key.name] = {};
       // toExport[key.name].global = { montant: 0, count: 0 };
@@ -177,7 +206,7 @@ contextBridge.exposeInMainWorld("transactions", {
   },
   setUserOptions: async (name, key, value) => {
     const { client, collection } = await getCollection("user_options");
-    let user_options = await collection.findOne({});
+    let user_options = await collection.findOne({ agence: os.hostname() });
     if (!user_options) {
       user_options = {};
       user_options.views = {
@@ -189,7 +218,7 @@ contextBridge.exposeInMainWorld("transactions", {
       user_options.theme = { dark: true };
       user_options.google_drive = { using: false };
       user_options.solde = {
-        start_with_last_date_value: true,
+        start_with_last_date_value: false,
       };
       user_options.editing = {
         allow_edit: false,
@@ -214,7 +243,7 @@ contextBridge.exposeInMainWorld("transactions", {
     user_options.date = new Date();
 
     const updated = await collection.updateOne(
-      {},
+      { agence: os.hostname() },
       { $set: user_options },
       { upsert: true }
     );

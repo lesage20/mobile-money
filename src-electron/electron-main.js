@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from "electron";
 import path from "path";
 import os from "os";
+const { autoUpdater } = require("electron-updater");
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
@@ -24,8 +25,9 @@ function createWindow() {
     },
   });
 
+  mainWindow.maximize();
+  // mainWindow.removeMenu();
   mainWindow.loadURL(process.env.APP_URL);
-
   if (process.env.DEBUGGING) {
     // if on DEV or Production with debug enabled
     mainWindow.webContents.openDevTools();
@@ -41,7 +43,11 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+  autoUpdater.checkForUpdatesAndNotify();
+});
+autoUpdater.autoDownload = true;
 
 app.on("window-all-closed", () => {
   if (platform !== "darwin") {

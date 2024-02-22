@@ -19,10 +19,20 @@
         <q-card-section class="d-flex align-center">
           <q-icon
             :color="isUvSufficient ? 'positive' : 'negative'"
-            size="xl"
-            :name="isUvSufficient ? 'check' : 'close'"
+            size="lg"
+            :name="isUvSufficient ? 'check' : 'warning'"
           ></q-icon>
         </q-card-section>
+        <q-tooltip
+          :class="
+            $q.dark.isActive
+              ? 'bg-white text-dark text-subtitle1'
+              : 'bg-dark text-white text-subtitle1'
+          "
+          v-if="!isUvSufficient"
+        >
+          Votre solde uv est bas. Vous pourriez rater des dépots.
+        </q-tooltip>
       </q-card-section>
     </q-card>
     <q-card flat bordered style="width: 49%">
@@ -42,9 +52,20 @@
           <q-icon
             :color="isCaisseSufficient ? 'positive' : 'negative'"
             size="xl"
-            :name="isCaisseSufficient ? 'check' : 'close'"
+            :name="isCaisseSufficient ? 'check' : 'warning'"
           ></q-icon>
         </q-card-section>
+        <q-tooltip
+          :class="
+            $q.dark.isActive
+              ? 'bg-white text-dark text-subtitle1'
+              : 'bg-dark text-white text-subtitle1'
+          "
+          v-if="!isCaisseSufficient"
+        >
+          Le montant dans votre caisse est bas. Vous pourriez rater des
+          retraits.
+        </q-tooltip>
       </q-card-section>
     </q-card>
   </div>

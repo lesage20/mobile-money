@@ -7,14 +7,28 @@
     />
   </div>
   <q-table
+    v-if="!loading"
     id="liste-transaction"
     :class="$q.dark.isActive ? 'text-grey-5' : 'text-grey-9'"
     :rows="rows"
     flat
     v-bind="$attrs"
     :columns="columns"
+    color="primary"
   >
+    <template #no-data>
+      <q-card
+        flat
+        class="flex-center column"
+        :class="$q.dark.isActive ? 'text-grey-5' : 'text-grey-7'"
+        style="height: 20vh; width: 100%"
+      >
+        <q-icon size="lg" name="receipt_long"></q-icon> <br />
+        Aucune données trouvée
+      </q-card>
+    </template>
   </q-table>
+  <TableLoader v-else />
 </template>
 <script setup>
 import { ref, onMounted, watch } from "vue";
@@ -23,7 +37,10 @@ import CreateTransaction from "./CreateTransaction.vue";
 import { date } from "quasar";
 import { driver } from "driver.js";
 import { useOptionStore } from "src/stores/user-options";
+import TableLoader from "./TableLoader.vue";
+import { useQuasar } from "quasar";
 
+const $q = useQuasar();
 const driverObj = driver({
   showProgress: true,
   steps: [
@@ -62,7 +79,7 @@ const props = defineProps({
     type: Object,
   },
 });
-
+const loading = ref(false);
 const columns = ref([
   {
     name: "Téléphone",
@@ -134,7 +151,21 @@ const getRows = async () => {
   if (props?.filter.telephone) {
     query.$where = `this.telephone.includes('${props.filter.telephone}')`;
   }
-  rows.value = await transactions.getTransactions(query);
+  try {
+    loading.value = true;
+    rows.value = await transactions.getTransactions(query);
+  } catch (err) {
+    console.dir(err);
+    if (err.message.includes("querySrv ESERVFAIL")) {
+      $q.notify({
+        type: "negative",
+        message: "Imppossible de se connecter au server",
+        position: "top-right",
+      });
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 const optionStore = useOptionStore();
 

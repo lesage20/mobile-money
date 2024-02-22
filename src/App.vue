@@ -181,6 +181,7 @@ const updateSolde = async (data, initData = null) => {
       }
     }
   }
+  data.date = new Date();
 
   const updated = await transactions.updateSolde(data, initData);
   if (updated?.acknowledged) {
@@ -198,7 +199,7 @@ onMounted(async () => {
   if (!optionStore.views.has_seen_app) {
     setTimeout(() => {
       driverObj.drive();
-    }, 2000);
+    }, 4000);
   }
   data = await transactions.getSolde();
   if (!data && optionStore.solde.start_with_last_date_value) {

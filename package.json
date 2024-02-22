@@ -1,7 +1,7 @@
 {
   "name": "mobile-money",
-  "version": "0.0.1",
-  "description": "Une application de gestion des transaction mobile money our les service de mobile money",
+  "version": "0.0.4",
+  "description": "Une application de gestion des transactions mobile money pour les agences de mobile money",
   "productName": "Mobile Money Manager",
   "author": "lesage20 <angezanou00@gmail.com>",
   "private": true,
@@ -15,13 +15,15 @@
   "dependencies": {
     "@quasar/extras": "^1.16.4",
     "driver.js": "^1.3.1",
+    "electron-updater": "^6.1.8",
     "mongodb": "^6.3.0",
     "pinia": "^2.0.11",
     "pinia-persistedstate": "^0.1.2",
     "quasar": "^2.6.0",
     "uuid": "^9.0.1",
     "vue": "^3.0.0",
-    "vue-router": "^4.0.0"
+    "vue-router": "^4.0.0",
+    "wine": "^0.9.13"
   },
   "devDependencies": {
     "@quasar/app-vite": "^1.3.0",

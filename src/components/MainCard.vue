@@ -1,6 +1,6 @@
 <template>
   <SoldeCard id="card-solde" :operateur="operateur"></SoldeCard>
-  <div id="card-periode">
+  <div id="card-periode" v-if="!loading">
     <q-card
       bordered
       flat
@@ -12,14 +12,21 @@
     >
       <q-card-section horizontal>
         <q-card-section class="col">
-          <div class="text-h5 q-pb-sm">{{ labels[key] }}</div>
+          <div class="text-h5 q-pb-sm" v-if="!loading">{{ labels[key] }}</div>
+          <q-skeleton width="200px" animation="pulse-y" type="rect" v-else />
         </q-card-section>
         <q-card-section class="">
-          <q-icon size="md" color="positive" name="trending_up"></q-icon>
+          <q-icon
+            size="md"
+            color="positive"
+            name="trending_up"
+            v-if="!loading"
+          ></q-icon>
+          <q-skeleton animation="pulse" type="circle" v-else />
         </q-card-section>
       </q-card-section>
 
-      <q-card-section horizontal>
+      <q-card-section horizontal v-if="!loading">
         <q-card-section
           class="col"
           v-for="(val, k) in stat"
@@ -30,6 +37,41 @@
           <div class="text-body1 text-bold">
             {{ val.montant?.toLocaleString() }} f
           </div>
+        </q-card-section>
+      </q-card-section>
+      <q-card-section horizontal v-else>
+        <q-card-section class="col" v-for="i in 3" :key="i">
+          <q-skeleton width="100px" animation="fade" type="text" />
+          <q-skeleton width="30px" animation="fade" type="text" />
+          <q-skeleton width="300px" animation="fade" type="text" />
+        </q-card-section>
+      </q-card-section>
+    </q-card>
+  </div>
+  <div id="card-periode-skeleton" v-else>
+    <q-card
+      bordered
+      flat
+      style="border-radius: 10px"
+      v-for="ind in 3"
+      :key="ind + 20"
+      class="q-my-md"
+      :class="$q.dark.isActive ? 'text-grey-5' : ''"
+    >
+      <q-card-section horizontal>
+        <q-card-section class="col">
+          <q-skeleton width="200px" animation="pulse-y" type="rect" />
+        </q-card-section>
+        <q-card-section class="">
+          <q-skeleton animation="pulse" type="circle" />
+        </q-card-section>
+      </q-card-section>
+
+      <q-card-section horizontal>
+        <q-card-section class="col" v-for="i in 3" :key="i">
+          <q-skeleton width="100px" animation="fade" type="text" />
+          <q-skeleton width="30px" animation="fade" type="text" />
+          <q-skeleton width="300px" animation="fade" type="text" />
         </q-card-section>
       </q-card-section>
     </q-card>
@@ -78,10 +120,17 @@ const labels = {
   week: "Cette semaine",
   month: "Ce mois",
 };
-
+const loading = ref(true);
 const getStats = async () => {
-  const data = await transactions.getTotalAndCount(props.operateur);
-  stats.value = data;
+  try {
+    loading.value = true;
+    const data = await transactions.getTotalAndCount(props.operateur);
+    stats.value = data;
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(async () => {

@@ -6,7 +6,12 @@
           <q-card-section>
             <div class="text-h5 text-regular">Paramètres</div>
           </q-card-section>
-
+          <q-card-section class="flex flex-center text-grey" v-if="loading">
+            <q-spinner-ios size="lg"></q-spinner-ios>
+            <q-item-label class="q-ml-md text-h5">
+              En cours de traitement
+            </q-item-label>
+          </q-card-section>
           <q-card-section>
             <q-item header class="text-grey q-pl-none">Thème</q-item>
             <div class="text-subtitle1 align-center flex justify-between">
@@ -21,10 +26,7 @@
           <q-card-section>
             <q-item header class="text-grey q-pl-none">Solde</q-item>
             <div class="text-subtitle1 align-center flex justify-between">
-              <span>
-                Commencer la journée avec le dernier solde en date ( Vous ne
-                pouvez pas desactiver )
-              </span>
+              <span> Commencer la journée avec le dernier solde en date </span>
               <q-toggle
                 v-on:click="
                   setOption(
@@ -35,6 +37,12 @@
                 "
                 v-model="startWithLastDateValue"
               ></q-toggle>
+              <div class="col-10 text-body text-grey">
+                Activez cette options pour ne pas remplir les soldes
+                manuellement chaque jour. Certaines agences ne reviennent pas
+                avec les mêmes soldes que la veille. dans ce cas ils sont obligé
+                de desactiver.
+              </div>
             </div>
           </q-card-section>
 
@@ -105,16 +113,24 @@
 
           <q-card-section>
             <q-item header class="text-grey q-pl-none">Modification</q-item>
-            <div class="text-subtitle1 align-center flex justify-between">
-              <span> Autoriser suppression de données </span>
+            <div
+              class="text-subtitle1 align-center flex justify-between text-grey"
+            >
+              <span>
+                Autoriser suppression de données ( bientôt disponible )
+              </span>
               <q-toggle
                 v-on:click="setOption('editing', 'allow_delete', allow_delete)"
                 disable
                 v-model="allow_delete"
               ></q-toggle>
             </div>
-            <div class="text-subtitle1 align-center flex justify-between">
-              <span> Autoriser odification de données </span>
+            <div
+              class="text-subtitle1 align-center flex justify-between text-grey"
+            >
+              <span>
+                Autoriser odification de données ( bientôt disponible )</span
+              >
               <q-toggle
                 v-on:click="setOption('editing', 'allow_edit', allow_edit)"
                 disable
@@ -147,9 +163,8 @@ const $q = useQuasar();
 const startWithLastDateValue = ref(
   optionStore.solde.start_with_last_date_value
 );
+const loading = ref(false);
 const dark = ref(optionStore.theme.dark);
-
-console.log({ optionStore });
 const google_drive = ref(optionStore.google_drive.using);
 const has_seen_app = ref(optionStore.views.has_seen_app);
 const has_seen_dashboard = ref(optionStore.views.has_seen_dashboard);
@@ -163,8 +178,15 @@ const allow_edit = ref(optionStore.editing?.allow_edit);
 const allow_delete = ref(optionStore.editing?.allow_delete);
 
 const setOption = async (name, key, value) => {
-  await transactions.setUserOptions(name, key, value);
-  if (key == "dark") $q.dark.toggle();
-  optionStore.setOption({ name, key, value });
+  loading.value = true;
+  try {
+    await transactions.setUserOptions(name, key, value);
+    if (key == "dark") $q.dark.toggle();
+    optionStore.setOption({ name, key, value });
+  } catch (err) {
+    console.log(err);
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
