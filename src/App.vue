@@ -196,11 +196,11 @@ onMounted(async () => {
   const userOptions = await transactions.setUserOptions();
   $q.dark.set(userOptions.theme.dark);
   optionStore.setUserOptions(userOptions);
-  if (!optionStore.views.has_seen_app) {
-    setTimeout(() => {
-      driverObj.drive();
-    }, 4000);
-  }
+  // if (!optionStore.views.has_seen_app) {
+  //   setTimeout(() => {
+  //     driverObj.drive();
+  //   }, 4000);
+  // }
   data = await transactions.getSolde();
   if (!data && optionStore.solde.start_with_last_date_value) {
     data = await transactions.getSolde(true);

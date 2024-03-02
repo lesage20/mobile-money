@@ -261,10 +261,10 @@ onMounted(async () => {
   const userOptions = await transactions.setUserOptions();
 
   optionStore.setUserOptions(userOptions);
-  if (!optionStore.views.has_seen_add_transaction) {
-    setTimeout(() => {
-      driverObj.drive();
-    }, 1000);
-  }
+  // if (!optionStore.views.has_seen_add_transaction) {
+  //   setTimeout(() => {
+  //     driverObj.drive();
+  //   }, 1000);
+  // }
 });
 </script>

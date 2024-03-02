@@ -203,7 +203,7 @@ module.exports = configure(function (/* ctx */) {
           target: "nsis",
         },
         linux: {
-          target: ["deb"], // "snap", "rpm", "AppImage"
+          target: ["rpm", "AppImage"], // "snap", "rpm", "AppImage"
         },
       },
     },

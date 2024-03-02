@@ -135,14 +135,14 @@ const getStats = async () => {
 
 onMounted(async () => {
   getStats();
-  const userOptions = await transactions.setUserOptions();
+  // const userOptions = await transactions.setUserOptions();
 
-  optionStore.setUserOptions(userOptions);
-  if (!optionStore.views.has_seen_dashboard) {
-    setTimeout(() => {
-      driverObj.drive();
-    }, 1000);
-  }
+  // optionStore.setUserOptions(userOptions);
+  // if (userOptions.views.has_seen_dashboard ) {
+  //   setTimeout(() => {
+  //     driverObj.drive();
+  //   }, 1000);
+  // }
 });
 watch(() => props.operateur, getStats);
 </script>

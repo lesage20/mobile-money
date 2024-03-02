@@ -63,7 +63,7 @@
             </div>
           </q-card-section>
 
-          <q-card-section>
+          <q-card-section v-if="false">
             <q-item header class="text-grey q-pl-none">
               Guide de démarrage
             </q-item>
